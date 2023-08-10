@@ -1,14 +1,15 @@
 using System.Drawing.Imaging;
 using System.Media;
+using System.Windows.Forms;
 
 namespace ScreenPixelMonitor
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private Rectangle? SelectedRegion { get; set; } = null;
         private Bitmap? RegionCapture { get; set; } = null;
         private bool IsMonitoring { get; set; }
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
 
@@ -22,16 +23,33 @@ namespace ScreenPixelMonitor
             var selection = new Selection();
 
             SelectedRegion = null;
+            RegionCapture?.Dispose();
             RegionCapture = null;
+            pictureBox1.Image = null;
 
-            if (selection.ShowDialog() == DialogResult.OK)
-            {
+            if (selection.ShowDialog() == DialogResult.OK) { 
                 SelectedRegion = selection.SelectedRegion!.Value;
-                RegionCapture = GetRegion(CaptureMyScreen(), SelectedRegion.Value);
+                CaptureRegion();
             }
 
-            pictureBox1.Image = RegionCapture;
+            selection.Dispose();
+
             this.Show();
+        }
+
+        private void CaptureRegion()
+        {
+            if(SelectedRegion != null)
+            {
+                using (var screen = CaptureMyScreen())
+                {
+                    RegionCapture?.Dispose();
+                    RegionCapture = GetRegion(screen, SelectedRegion.Value);
+                }
+            }
+
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = RegionCapture;
         }
 
         private Bitmap CaptureMyScreen()
@@ -73,22 +91,48 @@ namespace ScreenPixelMonitor
             {
                 while (IsMonitoring)
                 {
-                    var screen = CaptureMyScreen();
-                    var region = GetRegion(screen, SelectedRegion.Value);
-
-                    if (!CompareBitmaps(region, RegionCapture))
+                    using (var screen = CaptureMyScreen())
                     {
-                        //alert!
-                        if (!string.IsNullOrEmpty(txtAudioPath.Text))
+                        var region = GetRegion(screen, SelectedRegion.Value);
+
+                        if (!CompareBitmaps(region, RegionCapture))
                         {
-                            using (var soundPlayer = new SoundPlayer(txtAudioPath.Text))
+                            //alert!
+                            if (!string.IsNullOrEmpty(txtAudioPath.Text))
                             {
-                                soundPlayer.Play(); // can also use soundPlayer.PlaySync()
+                                using (var soundPlayer = new SoundPlayer(txtAudioPath.Text))
+                                {
+                                    soundPlayer.Play();
+                                }
+                            }
+
+                            var alert = new Alert { FlashAlert = true };
+
+                            if (alert.ShowDialog(txtMessage.Text) == DialogResult.Cancel)
+                            {
+                                region.Dispose();
+                                break;
+                            }
+                            else
+                            {
+                                RegionCapture?.Dispose();
+                                using(var currentScreen = CaptureMyScreen())
+                                {
+                                    RegionCapture = GetRegion(currentScreen, SelectedRegion.Value);
+                                }
+
+                                form.Invoke(new Action(() =>
+                                {
+                                    pictureBox1.Image = RegionCapture;
+                                }));
                             }
                         }
-                        MessageBox.Show(txtMessage.Text, "Alert", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        break;
+                        else
+                        {
+                            region.Dispose();
+                        }
                     }
+
 
                     Thread.Sleep(500);
                 }
@@ -148,6 +192,11 @@ namespace ScreenPixelMonitor
         {
             Properties.Settings.Default.Message = txtMessage.Text;
             Properties.Settings.Default.Save();
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            CaptureRegion();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ScreenPixelMonitor
+﻿using System.Drawing;
+
+namespace ScreenPixelMonitor
 {
     public partial class Selection : Form
     {
@@ -8,6 +10,7 @@
         private Graphics? formGraphics { get; set; } = null;
         private Point? StartLocation { get; set; } = null;
 
+
         public Rectangle? SelectedRegion { get; set; } = null;
 
         public Selection()
@@ -15,6 +18,17 @@
             InitializeComponent();
 
             Cursor = Cursors.Cross;
+
+            this.FormClosing += Selection_FormClosing;
+        }
+
+        private void Selection_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            myBrush?.Dispose();
+            formGraphics?.Dispose();
+            formGraphics = null;
+
+            StartLocation = null;
         }
 
         private void Selection_MouseDown(object sender, MouseEventArgs e)

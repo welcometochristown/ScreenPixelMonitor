@@ -1,6 +1,6 @@
 ﻿namespace ScreenPixelMonitor
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -37,6 +37,7 @@
             label1 = new Label();
             txtMessage = new TextBox();
             label2 = new Label();
+            btnRefresh = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             grpButtons.SuspendLayout();
             SuspendLayout();
@@ -73,6 +74,7 @@
             // 
             // grpButtons
             // 
+            grpButtons.Controls.Add(btnRefresh);
             grpButtons.Controls.Add(btnRegionSelect);
             grpButtons.Controls.Add(btnMonitor);
             grpButtons.Location = new Point(11, 284);
@@ -127,7 +129,17 @@
             label2.TabIndex = 6;
             label2.Text = "Message";
             // 
-            // Form1
+            // btnRefresh
+            // 
+            btnRefresh.Location = new Point(129, 12);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(117, 41);
+            btnRefresh.TabIndex = 0;
+            btnRefresh.Text = "Refresh";
+            btnRefresh.UseVisualStyleBackColor = true;
+            btnRefresh.Click += btnRefresh_Click;
+            // 
+            // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -140,7 +152,7 @@
             Controls.Add(grpButtons);
             Controls.Add(pictureBox1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Name = "Form1";
+            Name = "MainForm";
             Text = "Screen Pixel Monitor";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             grpButtons.ResumeLayout(false);
@@ -159,5 +171,6 @@
         private Label label1;
         private TextBox txtMessage;
         private Label label2;
+        private Button btnRefresh;
     }
 }
